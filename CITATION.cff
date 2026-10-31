@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use this code, please cite the paper."
+title: "Equation-Informed Time Reparameterization for Physics-Informed Neural Networks"
+authors:
+  - family-names: Belokas
+    given-names: Orestis
+    affiliation: "INSANE Research Lab, Institute of Informatics and Telecommunications, NCSR Demokritos"
+  - family-names: Rekatsinas
+    given-names: Christoforos
+    affiliation: "INSANE Research Lab, Institute of Informatics and Telecommunications, NCSR Demokritos"

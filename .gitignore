@@ -1,0 +1,5 @@
+outputs/
+__pycache__/
+*.pyc
+.DS_Store
+frank_kamenetskii/data/fk_reference_cache_*.npz
