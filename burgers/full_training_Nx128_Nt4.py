@@ -85,11 +85,15 @@ class PINN(nn.Module):
         self.net = nn.Sequential(*layers)
         self.register_buffer("freqs", (2.0 ** torch.arange(L)) * np.pi)
 
-    def forward(self, x, tau):
+    def raw(self, x, tau):
         p = x * self.freqs.view(1, -1)
-        raw = self.net(torch.cat([x, torch.sin(p), torch.cos(p), tau], dim=1))
+        return self.net(torch.cat([x, torch.sin(p), torch.cos(p), tau], dim=1))
+
+    def forward(self, x, tau):
         # hard ansatz: u = -sin(pi x) + tau (1 - x^2) NN gives the initial and boundary conditions exactly
-        return -torch.sin(np.pi * x) + tau * (1 - x**2) * raw
+        # (keep this evaluation order: it fixes the order of autograd's floating-point sums, so runs are bitwise
+        # reproducible against the paper's code)
+        return -torch.sin(np.pi * x) + tau * (1 - x**2) * self.raw(x, tau)
 
 
 def loss_fn(model):
