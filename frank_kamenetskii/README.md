@@ -24,3 +24,18 @@ Reference (`reference.py`, `data/ref_eval_*.npz`, `data/ref_evalc_*.npz`): the s
 on [0, 1] with second-order finite differences (h = 2.5·10⁻⁴) and BDF (rtol 1e-11), stored on 1001 x-nodes by 1501
 t-nodes clustered toward t_end, and read through a bicubic spline. The blow-up time comes from integrating until
 max u = 14.
+
+## Running
+
+Each script is a complete, flat PyTorch script with no arguments and no shared modules. Run it from anywhere, e.g.
+
+```
+cd frank_kamenetskii/psi_3e-3
+python full_training_Nx256_Nt80.py
+```
+
+To change a setting (seed, β, grid, budgets, network size, device, input file), edit the variables at the top of the
+script, under `# hyperparams`. The full trainings read the stored paper file `rates/pilot_seed1001.npz`; point
+`rate_file` at `outputs/pilot_seed1001.npz` to use your own pilot output. Results go to `outputs/`, figures to
+`plots/` (both inside the script's folder). `python reference.py` (in `frank_kamenetskii/`) rebuilds the reference in
+`data/`, caching the fine solve there.

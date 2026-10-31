@@ -18,3 +18,17 @@ training the collocation times are the midpoints of a uniform σ grid, the resid
 
 Reference (`reference.py`, `data/reference_nx3201.npz`): method of lines on 3201 points, BDF (rtol 1e-7,
 atol 1e-9), cubic interpolation onto the 100 × 100 scoring grid.
+
+## Running
+
+Each script is a complete, flat PyTorch script with no arguments and no shared modules. Run it from anywhere, e.g.
+
+```
+cd burgers
+python full_training_Nx128_Nt4.py
+```
+
+To change a setting (seed, β, grid, budgets, network size, input file), edit the variables at the top of the script,
+under `# hyperparams`. The full trainings read the stored paper file `rates/pilot_seed1000.npz`; point `rate_file` at
+`outputs/pilot_seed1000.npz` to use your own pilot output. Results go to `outputs/`, figures to `plots/` (both inside
+the script's folder). `python reference.py` rebuilds the reference in `data/`.

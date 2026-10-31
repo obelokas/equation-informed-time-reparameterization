@@ -10,7 +10,9 @@ by bootstrap rounds), never from a reference solution. The full training then so
 σ = s(t)/s_max, with collocation times uniform in σ.
 
 This repository contains one plain, commented script per stage and per configuration reported in the paper. It holds
-no sweeps, competitors or ablations.
+no sweeps, competitors or ablations. Each script is a complete PyTorch script that runs top to bottom: settings,
+rate and warp, collocation points, network, training, scoring and a figure. Scripts share no modules and take no
+command-line arguments; to change a setting, edit the variables at the top of the script.
 
 ## Repository layout
 
@@ -27,18 +29,23 @@ Each case folder holds:
 
 | file | content |
 |---|---|
-| `*_common.py` | the equation, network, warp, training loop and rate formula shared by the case's scripts |
 | `pilot_training.py` | the pilot training at its kept seed; writes the first rate file |
 | `bootstrap_round{1,2}.py` | the bootstrap rounds at their kept seeds (Allen-Cahn, Kachanov-Rabotnov psi = 1e-4) |
 | `full_training_*.py` | one script per configuration (N_x × N_t) at the best final seed |
 | `rates/` | the rate files the paper's runs actually used (outputs of the pilot training and bootstrap rounds) |
-| `data/` + `reference.py` | the reference solution used only for scoring, and the script that builds it |
+| `data/` + `reference.py` | the reference solution used only for scoring, and the standalone script that builds it |
 
-Kachanov-Rabotnov has a closed-form solution (in `kr_common.py`), so it has no `data/` folder.
+Kachanov-Rabotnov has a closed-form solution (written out in each full-training script), so it has no `data/` folder.
+
+Every script follows the same order: imports; dtype, thread and device setup; `# hyperparams` (grid sizes,
+learning rate, iteration budgets, network size, seed, β, the equation's constants and the rate file); the rate and
+the warp s(t) built inline; the collocation points; `class PINN` with the hard constraint in `forward`; the loss;
+Adam (where used) and L-BFGS; then the error against the reference (full trainings) or the rate file (pilot and
+bootstrap rounds), saved with `np.savez`, and a figure.
 
 ## Installation
 
-Python 3.10 or newer, with PyTorch, NumPy and SciPy:
+Python 3.10 or newer, with PyTorch, NumPy, SciPy and Matplotlib (for the figures):
 
 ```
 pip install -r requirements.txt
@@ -50,25 +57,33 @@ different numbers.
 
 ## Quickstart
 
-Every script runs from its own folder with no arguments, for example:
+Every script runs with no arguments, for example:
 
 ```
 cd kachanov_rabotnov/psi_1e-4
 python full_training_Nt256.py
 ```
 
-By default the full training reads the rate file stored in `rates/`, the one the paper used, so it reproduces the
-paper's configuration directly. To run the whole pipeline yourself:
+To change a setting (seed, β, grid, iteration budgets, network size, device, input file), edit the variables at the
+top of the script.
+
+By default the full trainings and the bootstrap rounds read the rate files stored in `rates/`, the ones the paper
+used, so each script reproduces the paper's configuration directly. To run the whole pipeline yourself, run the
+stages in order and point `rate_file` (under `# hyperparams` at the top of each script) at the previous stage's
+output in `outputs/`:
 
 ```
-python pilot_training.py                                   # -> outputs/pilot_seed1008.npz
-python bootstrap_round1.py --rate-file outputs/pilot_seed1008.npz
-python bootstrap_round2.py --rate-file outputs/bootstrap1_seed2008.npz
-python full_training_Nt256.py --rate-file outputs/bootstrap2_seed3001.npz
+python pilot_training.py        # -> outputs/pilot_seed1008.npz
+python bootstrap_round1.py      # rate_file = .../outputs/pilot_seed1008.npz     -> outputs/bootstrap1_seed2008.npz
+python bootstrap_round2.py      # rate_file = .../outputs/bootstrap1_seed2008.npz -> outputs/bootstrap2_seed3001.npz
+python full_training_Nt256.py   # rate_file = .../outputs/bootstrap2_seed3001.npz
 ```
 
-Outputs (rate files, predictions, errors) go to `outputs/` inside the folder. The Frank-Kamenetskii and Allen-Cahn
-scripts take `--device cpu|cuda`.
+Paths are relative to the script's own folder, so a script can be started from anywhere. Results (rate files,
+predictions, errors) go to `outputs/` and figures (solution vs reference, absolute error, loss curve; for the pilot
+and the bootstrap rounds, the rate) to `plots/`, both inside the script's folder. The Kachanov-Rabotnov and Burgers
+scripts run on the CPU. The Allen-Cahn and Frank-Kamenetskii scripts set `device` near the top: the scripts the paper
+ran on a GPU use CUDA when it is available, the others the CPU.
 
 ## Pipeline and seeds
 
@@ -79,7 +94,7 @@ scripts take `--device cpu|cuda`.
    file, and the run with the lowest final training loss was kept, again without the reference.
 3. **Full training.** The paper reports the median over ten seeds (90-99). Each script runs the best of those ten
    seeds by relative L2 error, a choice that uses the reference, so it serves only as a demonstration run. The
-   docstring and the table below give both numbers.
+   header comment of each script and the table below give both numbers.
 
 The reference solution is used only to score a full training. It never enters a pilot training, a bootstrap round or
 the rate.

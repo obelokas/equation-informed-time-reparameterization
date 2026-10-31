@@ -23,3 +23,18 @@ Common settings: float64, one CPU thread; network ω = τ NN(τ) (tanh MLP) with
 collocation times uniform in σ (in t/t_end for the pilot); L-BFGS with strong Wolfe line search, history 50,
 tolerances effectively off. Each rate file stores ω and the rate on 1000 points uniform in ω, read from the trained
 network on a time grid clustered toward t_end.
+
+## Running
+
+Each script is a complete, flat PyTorch script with no arguments and no shared modules. Run it from anywhere, e.g.
+
+```
+cd kachanov_rabotnov/psi_1e-4
+python full_training_Nt256.py
+```
+
+To change a setting (seed, β, grid, budgets, network size, input file), edit the variables at the top of the script,
+under `# hyperparams`. The bootstrap rounds and the full trainings read the stored paper files in `rates/`; point
+`rate_file` at the previous stage's file in `outputs/` to chain your own runs. Results go to `outputs/`, figures to
+`plots/` (both inside the script's folder). There is no reference script: the exact solution is written out in the
+full-training scripts.

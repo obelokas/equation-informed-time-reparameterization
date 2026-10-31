@@ -21,3 +21,18 @@ is the physical-time residual multiplied by rate^β / geomean(rate^β) over the 
 
 Reference (`reference.py`, `data/reference_200x200.npz`): Fourier pseudo-spectral method with 512 modes, BDF time
 stepping (rtol 1e-7, atol 1e-9), cubic interpolation onto the 200 × 200 scoring grid.
+
+## Running
+
+Each script is a complete, flat PyTorch script with no arguments and no shared modules. Run it from anywhere, e.g.
+
+```
+cd allen_cahn
+python full_training_Nt24.py
+```
+
+To change a setting (seed, β, grid, budgets, network size, device, input file), edit the variables at the top of the
+script, under `# hyperparams`. The bootstrap rounds and the full trainings read the stored paper files in `rates/`;
+point `rate_file` at `outputs/pilot_seed1002.npz`, `outputs/bootstrap1_seed2000.npz` or
+`outputs/bootstrap2_seed3002.npz` to chain your own runs. Results go to `outputs/`, figures to `plots/` (both inside
+the script's folder). `python reference.py` rebuilds the reference in `data/`.
