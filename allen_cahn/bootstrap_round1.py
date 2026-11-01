@@ -39,7 +39,7 @@ k_sign = 12.0                # steepness of the sign envelope tanh(k_sign cos(pi
 gamma1, gamma2 = 0.0001, 5.0
 lambda_ic = 50.0             # weight of the initial-condition penalty
 fourier_m = 10               # Fourier modes of the periodic x-embedding
-REL_FLOOR = 0.01             # rate floor, as a fraction of max rate
+eps = 1e-6                   # positivity constant added to the rate (rho = rate + eps)
 
 # the stored paper file; point rate_file at outputs/pilot_seed1002.npz to use your own pilot output
 rate_file = os.path.join(HERE, "rates/pilot_seed1002.npz")
@@ -134,11 +134,11 @@ pts = torch.tensor(np.stack([Xp.flatten(), Sp.flatten()], axis=1), dtype=torch.f
 with torch.no_grad():
     U = model(pts).cpu().numpy().reshape(200, 200)
 # rate(t) = mean_x max(0, gamma2 (1 - 3U^2) - gamma1 U_x^2), U_x by cubic splines in x. Late in time the growth
-# rate is 0 almost everywhere, so the rate is floored at REL_FLOOR * max to keep the warp strictly increasing.
+# rate can reach 0, so eps is added to keep the warp strictly increasing.
 U_x = np.array([CubicSpline(x_plot, U[:, j])(x_plot, 1) for j in range(U.shape[1])]).T
 lam = np.maximum(0.0, gamma2 * (1 - 3 * U**2) - gamma1 * U_x**2)
 rate_new = lam.mean(axis=0)
-rate_new = np.maximum(rate_new, REL_FLOOR * rate_new.max())
+rate_new = rate_new + eps
 os.makedirs(os.path.dirname(out_file), exist_ok=True)
 np.savez(out_file, t=t_plot, rate=rate_new, x_plot=x_plot, t_plot=t_plot, U_pred=U)
 print(f"rate file written: {out_file}  (R = max/min of rate = {rate_new.max() / rate_new.min():.4g})")

@@ -2,8 +2,9 @@
 
 u_t = 10⁻⁴ u_xx + 5 (u − u³), x ∈ [−1, 1] periodic, t ∈ [0, 1], u(x, 0) = x² cos(πx).
 
-Rate: rate(t) = mean_x max(0, 5(1 − 3u²) − 10⁻⁴ u_x²), floored at 1% of its maximum. The final rate comes from two
-bootstrap rounds after the pilot training.
+Rate: rate(t) = mean_x max(0, 5(1 − 3u²) − 10⁻⁴ u_x²), plus the positivity constant ε = 10⁻⁶. The final rate comes from two
+bootstrap rounds after the pilot training. The stored files in `rates/` were written without ε; their rates stay above
+0.34, so adding 10⁻⁶ changes them by less than 3 × 10⁻⁶ relative and leaves R and β unchanged.
 
 | stage | script | network | grid N_x × N_t | optimiser | β | seed | input → output |
 |---|---|---|---|---|---|---|---|

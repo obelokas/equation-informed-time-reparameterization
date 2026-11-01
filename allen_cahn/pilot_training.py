@@ -37,7 +37,7 @@ seed = 1002
 gamma1, gamma2 = 0.0001, 5.0
 lambda_ic = 50.0             # weight of the initial-condition penalty
 fourier_m = 10               # Fourier modes of the periodic x-embedding
-REL_FLOOR = 0.01             # rate floor, as a fraction of max rate
+eps = 1e-6                   # positivity constant added to the rate (rho = rate + eps)
 
 out_file = os.path.join(HERE, "outputs", f"pilot_seed{seed}.npz")
 
@@ -121,11 +121,11 @@ with torch.no_grad():
     pts = torch.tensor(np.stack([Xp.flatten(), Tp.flatten()], axis=1), dtype=torch.float32, device=device)
     U = model(pts).cpu().numpy().reshape(200, 200)
 # rate(t) = mean_x max(0, gamma2 (1 - 3U^2) - gamma1 U_x^2), U_x by cubic splines in x. Late in time the growth
-# rate is 0 almost everywhere, so the rate is floored at REL_FLOOR * max to keep the warp strictly increasing.
+# rate can reach 0, so eps is added to keep the warp strictly increasing.
 U_x = np.array([CubicSpline(x_plot, U[:, j])(x_plot, 1) for j in range(U.shape[1])]).T
 lam = np.maximum(0.0, gamma2 * (1 - 3 * U**2) - gamma1 * U_x**2)
 rate = lam.mean(axis=0)
-rate = np.maximum(rate, REL_FLOOR * rate.max())
+rate = rate + eps
 os.makedirs(os.path.dirname(out_file), exist_ok=True)
 np.savez(out_file, t=t_plot, rate=rate, x_plot=x_plot, t_plot=t_plot, U_pred=U)
 print(f"rate file written: {out_file}  (R = max/min of rate = {rate.max() / rate.min():.4g})")
