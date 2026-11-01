@@ -148,3 +148,8 @@ Frank-Kamenetskii initialises it on the GPU with deterministic kernels, so a CPU
   note   = {Manuscript in preparation}
 }
 ```
+
+## License
+
+The code is released under the MIT License (see [LICENSE](LICENSE)). Copyright (c) 2026 Orestis Belokas and
+Christoforos Rekatsinas.
